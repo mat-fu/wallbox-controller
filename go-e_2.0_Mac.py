@@ -3,6 +3,7 @@ import requests
 import json
 from tkinter import *
 from tkinter import ttk
+from tkinter import messagebox
 from tkmacosx import Button
 
 #DEFINING FUNCTIONS
@@ -24,7 +25,7 @@ def jprint(obj):
 
 #SET AMPS TO VALUE SPECIFIED IN INPUT
 def set_amps_input():
-    amp = input("To what Amps should the charging power be set?: $")
+    amp = input("Auf wieviel Ampere soll die Ladeleistung gesetzt werden?: $")
     parameters_set_amp["payload"] = "amp="+amp
     response = requests.get("https://api.go-e.co/api", params=parameters_set_amp)
     jprint(response.json())
@@ -46,12 +47,15 @@ def get_status():
 def get_status_button():
     #Delete Entries
     e_AmpereGet.delete(0,END)
-    e_ChargeSpeed.delete(0, END)
     e_ChargedEnergy.delete(0,END)
     e_LastOnline.delete(0,END)
     e_CarStatus.delete(0, END)
+    e_ChargeSpeed.delete(0, END)
     #Calling API
     wb_status = requests.get("https://api.go-e.co/api_status", params=parameters_status).json()
+    #Error Handling
+    if wb_status['success'] == False:
+        messagebox.showerror(title = "Error", message = wb_status['error'])
     #Inserting Amps
     e_AmpereGet.insert(0, str(wb_status['data']['amp']))
     #Calculating and Inserting Charge Speed
@@ -71,8 +75,10 @@ def get_status_button():
     dws = int(wb_status['data']['dws'])
     kWh = dws*10/60/60/1000
     e_ChargedEnergy.insert(0, str(kWh))
-    #Inserting Las Online
-    e_LastOnline.insert(0, str(wb_status['data']['tme']))
+    #Inserting Last Online
+    lastOnlineAPI = str(wb_status['data']['tme'])
+    lastOnlineSliced = (f"{lastOnlineAPI[0:2]}.{lastOnlineAPI[2:4]}.{lastOnlineAPI[4:6]} {lastOnlineAPI[6:8]}:{lastOnlineAPI[8:10]}")
+    e_LastOnline.insert(0, lastOnlineSliced)
     #Inserting Car Status
     car_status = str(wb_status['data']['car'])
     if car_status == "1":
@@ -86,12 +92,14 @@ def get_status_button():
     else:
         e_CarStatus.insert(0, "Unknown status")
 
-
-
 #SET AMPS VIA BUTTON
 def set_ampere_button():
     amps_to_set = int(e_AmpereSet.get())
     response = set_amps(amps_to_set)
+    #Error Handling
+    if response.json()['success'] == False:
+        messagebox.showerror(Title=None, message=response.json()['error'])
+    
     t_ResponseSetAmpere.delete(1.0, END)
     t_ResponseSetAmpere.insert(END, response.json())
 
@@ -186,7 +194,7 @@ def check_amp_adjustment():
 ##################END OF DEFINING FUNCTIONS
 
 #SPECIFY PARAMETRS FOR REQUESTS
-token = "" #Insert yourCloud Token here
+token = "" #Insert your Cloud Token here
 parameters_status = {
     "token": token
 }
@@ -209,18 +217,18 @@ amp_fast_charging = 16
 amp_slow_charging = 6
 
 #TKINTER##########################################
-root = Tk()
+root = root = Tk()
 root.title("Ladecontroller")
-root.configure(bg="#000000")
-root.geometry("570x400")
+root.configure(bg="#252626")
+root.geometry("500x500")
 
 #Defining Notebook###############################
 my_Notebook = ttk.Notebook(root)
 my_Notebook.grid(row=0, column=0, rowspan=11, columnspan=10, pady=5, padx=5)
 
-f_GetStatus = Frame(my_Notebook, bg="#252626") ##252626
+f_GetStatus = Frame(my_Notebook, bg="#252626")
 f_GetStatus.pack(fill="both", expand=1)
-f_SetAmpere = Frame(my_Notebook, bg="#252626") #252626
+f_SetAmpere = Frame(my_Notebook, bg="#252626")
 f_SetAmpere.pack(fill="both", expand=1)
 f_SetScheduler = Frame(my_Notebook, bg="#252626")
 f_SetScheduler.pack(fill="both", expand=1)
@@ -253,27 +261,27 @@ l_StatusScheduler = Label(f_SetScheduler, text="Status:", bg="#252626", fg="#fff
 
 
 #Defining Entry Widgets
-e_AmpereGet = Entry(f_GetStatus, bg="#646666", fg="#ffffff")
-e_ChargeSpeed = Entry(f_GetStatus, bg="#646666", fg="#ffffff")
-e_ChargedEnergy = Entry(f_GetStatus, bg="#646666", fg="#ffffff")
-e_LastOnline = Entry(f_GetStatus, bg="#646666", fg="#ffffff")
-e_CarStatus = Entry(f_GetStatus, bg="#646666", fg="#ffffff")
-e_AmpereSet = Entry(f_SetAmpere, bg="#646666", fg="#ffffff")
-t_ResponseSetAmpere = Text(f_SetAmpere, width=20, height=2, bg="#646666", fg="#ffffff")
-e_AmpereFastScheduler = Entry(f_SetScheduler, bg="#646666", fg="#ffffff")
-e_AmpereSlowScheduler = Entry(f_SetScheduler, bg="#646666", fg="#ffffff")
-e_hhStart = Entry(f_SetScheduler, bg="#646666", fg="#ffffff")
-e_mmStart = Entry(f_SetScheduler, bg="#646666", fg="#ffffff")
-e_hhEnd = Entry(f_SetScheduler, bg="#646666", fg="#ffffff")
-e_mmEnd = Entry(f_SetScheduler, bg="#646666", fg="#ffffff")
+e_AmpereGet = Entry(f_GetStatus, bg="#237c6a", fg="#ffffff")
+e_ChargeSpeed = Entry(f_GetStatus, bg="#237c6a", fg="#ffffff")
+e_ChargedEnergy = Entry(f_GetStatus, bg="#237c6a", fg="#ffffff")
+e_LastOnline = Entry(f_GetStatus, bg="#237c6a", fg="#ffffff")
+e_CarStatus = Entry(f_GetStatus, bg="#237c6a", fg="#ffffff")
+e_AmpereSet = Entry(f_SetAmpere, bg="#237c6a", fg="#ffffff")
+t_ResponseSetAmpere = Text(f_SetAmpere, width=20, height=2, bg="#237c6a", fg="#ffffff")
+e_AmpereFastScheduler = Entry(f_SetScheduler, bg="#237c6a", fg="#ffffff")
+e_AmpereSlowScheduler = Entry(f_SetScheduler, bg="#237c6a", fg="#ffffff")
+e_hhStart = Entry(f_SetScheduler, bg="#237c6a", fg="#ffffff")
+e_mmStart = Entry(f_SetScheduler, bg="#237c6a", fg="#ffffff")
+e_hhEnd = Entry(f_SetScheduler, bg="#237c6a", fg="#ffffff")
+e_mmEnd = Entry(f_SetScheduler, bg="#237c6a", fg="#ffffff")
 e_StatusScheduler = Entry(f_SetScheduler, bg="#328a28", fg="#ffffff")
 e_StatusScheduler.insert(0, "Ready!")
 
 #Defining Buttons| removed commandos
-b_GetStatus = Button(f_GetStatus, text="Get Status", bg="#006cb4", fg="#ffffff", command=get_status_button)
-b_SetAmpere = Button(f_SetAmpere, text="Set Ampere", bg="#006cb4", fg="#ffffff", command=set_ampere_button)
-b_SetScheduler = Button(f_SetScheduler, text="Set Scheduler", bg="#006cb4", fg="#ffffff", command=set_scheduler_button)
-b_AbortScheduler = Button(f_SetScheduler, text="Abort Scheduler", bg="#006cb4", fg="#ffffff", command=abort_scheduler_button)
+b_GetStatus = Button(f_GetStatus, text="Get Status", bg="#237c6a", fg="#ffffff", command=get_status_button)
+b_SetAmpere = Button(f_SetAmpere, text="Set Ampere", bg="#237c6a", fg="#ffffff", command=set_ampere_button)
+b_SetScheduler = Button(f_SetScheduler, text="Set Scheduler", bg="#237c6a", fg="#ffffff", command=set_scheduler_button)
+b_AbortScheduler = Button(f_SetScheduler, text="Abort Scheduler", bg="#237c6a", fg="#ffffff", command=abort_scheduler_button)
 
 #Placing Labels
 #l_GetStatus.grid(row=0, column=0, columnspan=2)

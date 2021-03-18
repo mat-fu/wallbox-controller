@@ -3,6 +3,7 @@ import requests
 import json
 from tkinter import *
 from tkinter import ttk
+from tkinter import messagebox
 
 #DEFINING FUNCTIONS
 
@@ -51,6 +52,9 @@ def get_status_button():
     e_ChargeSpeed.delete(0, END)
     #Calling API
     wb_status = requests.get("https://api.go-e.co/api_status", params=parameters_status).json()
+    #Error Handling
+    if wb_status['success'] == False:
+        messagebox.showerror(title = "Error", message = wb_status['error'])
     #Inserting Amps
     e_AmpereGet.insert(0, str(wb_status['data']['amp']))
     #Calculating and Inserting Charge Speed
@@ -87,12 +91,14 @@ def get_status_button():
     else:
         e_CarStatus.insert(0, "Unknown status")
 
-
-
 #SET AMPS VIA BUTTON
 def set_ampere_button():
     amps_to_set = int(e_AmpereSet.get())
     response = set_amps(amps_to_set)
+    #Error Handling
+    if response.json()['success'] == False:
+        messagebox.showerror(Title=None, message=response.json()['error'])
+    
     t_ResponseSetAmpere.delete(1.0, END)
     t_ResponseSetAmpere.insert(END, response.json())
 
